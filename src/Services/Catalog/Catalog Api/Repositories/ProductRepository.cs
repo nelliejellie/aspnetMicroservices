@@ -1,64 +1,71 @@
 ﻿using Catalog_Api.Data;
 using Catalog_Api.Entities;
 using MongoDB.Driver;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Catalog_Api.Repositories
 {
     public class ProductRepository : IProductRepository
     {
-        private readonly ICatalogContext _catalogContext;
-        public ProductRepository(ICatalogContext catalogContext)
+        private readonly IMongoCollection<Product> dbcollection;
+        private readonly FilterDefinitionBuilder<Product> filterBuilder = Builders<Product>.Filter;
+        public ProductRepository(IMongoDatabase database, string collectionName)
         {
-            _catalogContext = catalogContext;
+            dbcollection = database.GetCollection<Product>(collectionName);
         }
-
         public async Task<IEnumerable<Product>> GetProducts()
         {
-            return await _catalogContext.Products.Find(p =>  true).ToListAsync();
+            try
+            {
+                var products = await dbcollection.Find(filterBuilder.Empty).ToListAsync();
+                return products;
+
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.InnerException);
+                return null;
+            }
         }
 
         public async Task<Product> GetProduct(string id)
         {
-            return await _catalogContext.Products.Find(p => p.Id == id).FirstOrDefaultAsync();
+            FilterDefinition<Product> filter = filterBuilder.Eq(entity => entity.Id, id);
+            return await dbcollection.Find(filter).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Product>> GetProductByName(string name)
         {
-            FilterDefinition<Product> filter = Builders<Product>.Filter.ElemMatch(p => p.Name, name);
-
-            return await _catalogContext.Products.Find(filter).ToListAsync(); 
+            FilterDefinition<Product> filter = filterBuilder.Eq(entity => entity.Name, name);
+            return await dbcollection.Find(filter).ToListAsync();
         }
 
         public async Task<IEnumerable<Product>> GetProductBYCategory(string category)
         {
-            FilterDefinition<Product> filter = Builders<Product>.Filter.ElemMatch(p => p.Category, category);
-
-            return await _catalogContext.Products.Find(filter).ToListAsync();
+            FilterDefinition<Product> filter = filterBuilder.Eq(entity => entity.Category, category);
+            return await dbcollection.Find(filter).ToListAsync();
         }
 
         public async Task CreateProduct(Product product)
         {
-            await _catalogContext.Products.InsertOneAsync(product);
+            await dbcollection.InsertOneAsync(product);
         }
 
         public async Task<bool> UpdateProduct(Product product)
         {
-            var updateResult = await _catalogContext
-                                        .Products.ReplaceOneAsync(filter: g => g.Id == product.Id, replacement: product);
+            var updateResult = await dbcollection
+                                        .ReplaceOneAsync(filter: g => g.Id == product.Id, replacement: product);
 
             return updateResult.IsAcknowledged && updateResult.ModifiedCount > 0;
         }
 
-        public async Task<bool> DeleteProduct(string id)
+        public async Task DeleteProduct(string id)
         {
-            FilterDefinition<Product> filter = Builders<Product>.Filter.Eq(p => p.Id, id);
-
-            DeleteResult deleteResult = await _catalogContext.Products.DeleteOneAsync(filter);
-
-            return deleteResult.IsAcknowledged && deleteResult.DeletedCount > 0;
+            FilterDefinition<Product> filter = filterBuilder.Eq(entity => entity.Id, id);
+            await dbcollection.DeleteOneAsync(filter);
         }
     }
 }

@@ -7,11 +7,12 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Catalog_Api.Controllers
 {
-    [Route("api/v1 /[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class CatalogController : ControllerBase
     {
@@ -25,13 +26,14 @@ namespace Catalog_Api.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<Product>), (int)HttpStatusCode.OK)]
         public async  Task<ActionResult<IEnumerable<Product>>> GetProduct()
         {
-            var products = _repository.GetProducts();
+            var products = await _repository.GetProducts();
             return Ok(products);
         }
 
-        [HttpGet("{id:length(24)}", Name="GetProduct")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProductById(string id)
         {
             var product = await _repository.GetProduct(id);
@@ -54,7 +56,7 @@ namespace Catalog_Api.Controllers
         public async Task<ActionResult<Product>> CreateProduct([FromBody] Product product)
         {
             await _repository.CreateProduct(product);
-            return CreatedAtRoute("GetProduct", new {id= product.Id }, product);
+            return Created("http://localhost:5000/api/v1/Catalog", product);
         }
 
         [HttpPut]
@@ -63,10 +65,15 @@ namespace Catalog_Api.Controllers
             return Ok(await _repository.UpdateProduct(product));
         }
 
-        [HttpDelete("{id:length(24)}", Name ="DeleteProduct")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProductById(string id)
         {
-            return Ok(await _repository.DeleteProduct(id));
+            await _repository.DeleteProduct(id);
+            return Ok(new
+            {
+                status = "success",
+                message = "deleted successfully"
+            });
         }
     }
 }
