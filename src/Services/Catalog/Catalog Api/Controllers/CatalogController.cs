@@ -27,7 +27,7 @@ namespace Catalog_Api.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<Product>), (int)HttpStatusCode.OK)]
-        public async  Task<ActionResult<IEnumerable<Product>>> GetProduct()
+        public async  Task<IActionResult> GetProduct()
         {
             var products = await _repository.GetProducts();
             return Ok(products);

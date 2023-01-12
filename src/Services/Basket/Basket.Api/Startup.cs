@@ -1,6 +1,3 @@
-using Catalog_Api.Data;
-using Catalog_Api.Entities;
-using Catalog_Api.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -9,14 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Catalog_Api
+namespace Basket.Api
 {
     public class Startup
     {
@@ -31,27 +26,10 @@ namespace Catalog_Api
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers()
-            .AddJsonOptions(o => o.JsonSerializerOptions
-                .ReferenceHandler = ReferenceHandler.Preserve);
-
+            services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Catalog_Api", Version = "v1" });
-            });
-            services.AddScoped<ICatalogContext, CatalogContext>();
-            //services.AddScoped<IProductRepository, ProductRepository>();
-
-            services.AddSingleton(serviceProvider =>
-            {
-                var mongoClient = new MongoClient(Configuration.GetValue<string>("DatabaseSettings:ConnectionStrings"));
-                return mongoClient.GetDatabase(Configuration.GetValue<string>("DatabaseSettings:DatabaseName"));
-            });
-
-            services.AddSingleton<IProductRepository>(serviceProvider =>
-            {
-                var database = serviceProvider.GetService<IMongoDatabase>();
-                return new ProductRepository(database, "Products");
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Basket.Api", Version = "v1" });
             });
         }
 
@@ -62,7 +40,7 @@ namespace Catalog_Api
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Catalog_Api v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Basket.Api v1"));
             }
 
             app.UseRouting();
