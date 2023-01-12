@@ -1,3 +1,4 @@
+using Basket.Api.Repositries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -25,8 +26,16 @@ namespace Basket.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //for redis
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = Configuration.GetValue<string>("CacheSettings:ConnectionString");
+            });
 
+            
             services.AddControllers();
+
+            services.AddScoped<IBasketRepository, BasketRepository>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Basket.Api", Version = "v1" });
