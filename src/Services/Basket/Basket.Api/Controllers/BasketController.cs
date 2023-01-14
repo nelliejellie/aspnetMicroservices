@@ -33,7 +33,8 @@ namespace Basket.Api.Controllers
             }
            
         }
-        [HttpPut]
+        
+        [HttpPost]
         public async Task<ActionResult<ShoppingCart>> updateBasket([FromBody] ShoppingCart basket)
         {
             try
