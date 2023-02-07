@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using System;
 
-namespace Discount.Api
+namespace Discount.Api.Extensions
 {
     public static class HostExtensions
     {
@@ -49,11 +49,11 @@ namespace Discount.Api
                 {
                     logger.LogError(ex, "an error occureed while migrating");
 
-                    if(retryForAvailability > 50)
+                    if (retryForAvailability > 50)
                     {
                         retryForAvailability++;
                         System.Threading.Thread.Sleep(2000);
-                        MigrateDatabase<TContext>(host, retryForAvailability);
+                        host.MigrateDatabase<TContext>(retryForAvailability);
                     }
                     throw;
                 }
